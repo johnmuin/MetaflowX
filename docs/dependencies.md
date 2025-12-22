@@ -66,7 +66,7 @@ For more detailes refer to the [official instructions](https://docs.antismash.se
 ### 2.3 RGI
 
 ``` bash
-conda create --name rgi --channel conda-forge --channel bioconda --channel defaults rgi
+conda create --name rgi --channel conda-forge --channel bioconda --channel rgi
 ```
 
 For more detailes refer to the [official instructions](https://github.com/arpcard/rgi#installation).

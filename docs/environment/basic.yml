@@ -3,7 +3,6 @@ channels:
   - bioconda
   - biobakery
   - main
-  - defaults
 dependencies:
   - python=3.10
   - bedtools=2.31.0
