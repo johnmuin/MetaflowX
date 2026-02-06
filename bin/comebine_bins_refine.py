@@ -22,6 +22,9 @@ def parse_args():
 def create_output_dir(output_dir):
 	os.makedirs(output_dir, exist_ok=True)
 
+def normalize_contig_id(contig_id):
+	return contig_id.split()[0]
+
 def parse_fats(contigF, contigDir,contig_lengths_Dir):
 	total_contig_num, total_contig_length = 0,0
 	for record in SeqIO.parse(contigF, "fasta"):
@@ -39,7 +42,8 @@ def get_contig_lengths(contig_info_file):
 		header = cf.readline()
 		for contig in cf:
 			cl = contig.strip().split("\t")
-			len_dir[cl[0]] =  int(float(cl[1]))
+			contig_id = normalize_contig_id(cl[0])
+			len_dir[contig_id] =  int(float(cl[1]))
 	return(len_dir)
 
 def check_contig2bin(contig2binFile,contig_lengths_Dir,total_contig_num, total_contig_length):
@@ -48,6 +52,7 @@ def check_contig2bin(contig2binFile,contig_lengths_Dir,total_contig_num, total_c
 	with open(contig2binFile,'r') as binerTsvF:
 		for i in binerTsvF:
 			contig_id, bin_id = i.strip().split("\t")
+			contig_id = normalize_contig_id(contig_id)
 
 			contig_len  = contig_lengths_Dir.get(contig_id,0)
 			
@@ -68,6 +73,7 @@ def process_contigs2bin_file(contig2binFile,binner_name):
 	with open(contig2binFile,'r') as cbF:
 		for b in cbF:
 			contig_id, bin_id = b.strip().split("\t")
+			contig_id = normalize_contig_id(contig_id)
 
 			contig_bin_dir.setdefault(binner_name,{})[contig_id] = bin_id
 
