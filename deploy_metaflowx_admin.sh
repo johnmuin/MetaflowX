@@ -9,7 +9,12 @@ set -Eeuo pipefail
 #
 # Heavy network/database actions are opt-in:
 #   --install-nextflow   create a lightweight nextflow conda environment
-#   --install-envs       create MetaflowX/checkm2/quast/antismash conda environments
+#   --install-envs       create all conda environments
+#   --install-basic-env  create/update only the MetaflowX base conda environment
+#   --install-checkm2-env create/update only the CheckM2 conda environment
+#   --install-quast-env create/update only the MetaQUAST conda environment
+#   --install-antismash-env create/update only the antiSMASH conda environment
+#   --install-metadecoder-env create/update only the MetaDecoder conda environment
 #   --download-core-db   download/build host hg38, PhiX, MetaPhlAn, HUMAnN, eggNOG, CheckM2
 #
 # Example:
@@ -26,9 +31,15 @@ ENV_NEXTFLOW="nextflow"
 ENV_CHECKM2="checkm2"
 ENV_QUAST="quast"
 ENV_ANTISMASH="antismash"
+ENV_METADECODER="metadecoder"
 THREADS="16"
 DO_INSTALL_NEXTFLOW=0
 DO_INSTALL_ENVS=0
+DO_INSTALL_BASIC_ENV=0
+DO_INSTALL_CHECKM2_ENV=0
+DO_INSTALL_QUAST_ENV=0
+DO_INSTALL_ANTISMASH_ENV=0
+DO_INSTALL_METADECODER_ENV=0
 DO_DOWNLOAD_CORE_DB=0
 DO_DOWNLOAD_KRAKEN2=0
 DO_DOWNLOAD_GTDBTK=0
@@ -70,7 +81,12 @@ Options:
   --use-env-proxy           Preserve current proxy variables for downloads
   --metaphlan-index NAME    MetaPhlAn index to install, default: ${METAPHLAN_INDEX}
   --install-nextflow        Create a lightweight nextflow conda environment
-  --install-envs            Create basic, checkm2, quast, and antismash conda environments
+  --install-envs            Create all conda environments; compatibility umbrella option
+  --install-basic-env       Create/update only the MetaflowX base conda environment
+  --install-checkm2-env     Create/update only the CheckM2 conda environment
+  --install-quast-env       Create/update only the MetaQUAST conda environment
+  --install-antismash-env   Create/update only the antiSMASH conda environment
+  --install-metadecoder-env Create/update only the MetaDecoder conda environment
   --download-core-db        Download/build hg38, PhiX, MetaPhlAn, HUMAnN, eggNOG, CheckM2
   --download-kraken2        Download prebuilt Ben Langmead Kraken2/Bracken Standard DB
   --download-gtdbtk         Also download GTDB-Tk DB; needs ~110GB disk
@@ -207,6 +223,11 @@ while [[ $# -gt 0 ]]; do
     --metaphlan-index) METAPHLAN_INDEX="$2"; shift 2 ;;
     --install-nextflow) DO_INSTALL_NEXTFLOW=1; shift ;;
     --install-envs) DO_INSTALL_ENVS=1; shift ;;
+    --install-basic-env) DO_INSTALL_BASIC_ENV=1; shift ;;
+    --install-checkm2-env) DO_INSTALL_CHECKM2_ENV=1; shift ;;
+    --install-quast-env) DO_INSTALL_QUAST_ENV=1; shift ;;
+    --install-antismash-env) DO_INSTALL_ANTISMASH_ENV=1; shift ;;
+    --install-metadecoder-env) DO_INSTALL_METADECODER_ENV=1; shift ;;
     --download-core-db) DO_DOWNLOAD_CORE_DB=1; shift ;;
     --download-kraken2) DO_DOWNLOAD_KRAKEN2=1; shift ;;
     --download-gtdbtk) DO_DOWNLOAD_GTDBTK=1; shift ;;
@@ -335,6 +356,9 @@ process {
   withName: ANTISMASH {
     conda = "${ENV_DIR}/${ENV_ANTISMASH}"
   }
+  withName: METADECODER {
+    conda = "${ENV_DIR}/${ENV_METADECODER}"
+  }
 }
 EOF
 if [[ "${DO_INSTALL_NEXTFLOW}" -eq 1 ]]; then
@@ -343,25 +367,46 @@ if [[ "${DO_INSTALL_NEXTFLOW}" -eq 1 ]]; then
 fi
 
 if [[ "${DO_INSTALL_ENVS}" -eq 1 ]]; then
+  DO_INSTALL_BASIC_ENV=1
+  DO_INSTALL_CHECKM2_ENV=1
+  DO_INSTALL_QUAST_ENV=1
+  DO_INSTALL_ANTISMASH_ENV=1
+  DO_INSTALL_METADECODER_ENV=1
+fi
+
+if [[ "${DO_INSTALL_BASIC_ENV}" -eq 1 ]]; then
   log "Installing MetaflowX base conda environment from docs/environment/basic.yml"
   run_cmd bash -lc "$(conda_create_or_update_cmd "${ENV_BASIC}" "basic.yml")"
 
   log "Installing runtime patch packages into ${ENV_BASIC}: aria2 gdown setuptools<81"
   run_cmd bash -lc "source '${CONDA_ROOT}/etc/profile.d/conda.sh' && conda activate '${ENV_BASIC}' && if command -v mamba >/dev/null 2>&1; then SOLVER=mamba; else SOLVER=conda; fi && \${SOLVER} install -y -c conda-forge aria2 gdown 'setuptools<81' && python -c 'import pkg_resources'"
+fi
 
+if [[ "${DO_INSTALL_CHECKM2_ENV}" -eq 1 ]]; then
   log "Installing CheckM2 conda environment from docs/environment/checkm2.yml"
   run_cmd bash -lc "$(conda_create_or_update_cmd "${ENV_CHECKM2}" "checkm2.yml")"
 
   log "Installing CheckM2 Python package into ${ENV_CHECKM2}"
   run_cmd bash -lc "source '${CONDA_ROOT}/etc/profile.d/conda.sh' && conda activate '${ENV_CHECKM2}' && pip install checkm2"
+fi
 
+if [[ "${DO_INSTALL_QUAST_ENV}" -eq 1 ]]; then
   log "Installing MetaQUAST conda environment from docs/environment/quast.yml"
   run_cmd bash -lc "$(conda_create_or_update_cmd "${ENV_QUAST}" "quast.yml")"
   run_cmd bash -lc "source '${CONDA_ROOT}/etc/profile.d/conda.sh' && conda run -n '${ENV_QUAST}' metaquast.py --version"
+fi
 
+if [[ "${DO_INSTALL_ANTISMASH_ENV}" -eq 1 ]]; then
   log "Installing antiSMASH conda environment from docs/environment/antismash.yml"
   run_cmd bash -lc "$(conda_create_or_update_cmd "${ENV_ANTISMASH}" "antismash.yml")"
-  run_cmd bash -lc "source '${CONDA_ROOT}/etc/profile.d/conda.sh' && conda run -n '${ENV_ANTISMASH}' antismash --version"
+  log "Installing antiSMASH bundled databases into ${ENV_ANTISMASH}"
+  run_cmd bash -lc "if [[ '${USE_ENV_PROXY}' != '1' ]]; then unset http_proxy https_proxy HTTP_PROXY HTTPS_PROXY all_proxy ALL_PROXY; fi; source '${CONDA_ROOT}/etc/profile.d/conda.sh' && conda run -n '${ENV_ANTISMASH}' antismash --version && conda run -n '${ENV_ANTISMASH}' download-antismash-databases && find '${ENV_DIR}/${ENV_ANTISMASH}/lib' -path '*/antismash/databases/mite/*/mite.fasta' -type f | grep -q ."
+fi
+
+if [[ "${DO_INSTALL_METADECODER_ENV}" -eq 1 ]]; then
+  log "Installing MetaDecoder conda environment from docs/environment/metadecoder.yml"
+  run_cmd bash -lc "$(conda_create_or_update_cmd "${ENV_METADECODER}" "metadecoder.yml")"
+  run_cmd bash -lc "source '${CONDA_ROOT}/etc/profile.d/conda.sh' && conda run -n '${ENV_METADECODER}' metadecoder --version"
 fi
 
 if [[ "${DO_DOWNLOAD_CORE_DB}" -eq 1 ]]; then
