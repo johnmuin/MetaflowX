@@ -19,8 +19,8 @@ process NOTIFICATION {
     def username = System.getProperty('user.name')
     """
 
-    if [ -n ${webhookurl} ]; then
-        curl ${webhookurl} \\
+    if [ -n "${webhookurl}" ]; then
+        curl "${webhookurl}" \\
             -H 'Content-Type: application/json' \\
             -d '
             {

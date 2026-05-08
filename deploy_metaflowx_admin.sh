@@ -15,6 +15,7 @@ set -Eeuo pipefail
 #   --install-quast-env create/update only the MetaQUAST conda environment
 #   --install-antismash-env create/update only the antiSMASH conda environment
 #   --install-metadecoder-env create/update only the MetaDecoder conda environment
+#   --install-galah-env create/update only the Galah conda environment
 #   --download-core-db   download/build host hg38, PhiX, MetaPhlAn, HUMAnN, eggNOG, CheckM2
 #   --download-antismash-db download antiSMASH databases under DB_ROOT
 #
@@ -33,6 +34,7 @@ ENV_CHECKM2="checkm2"
 ENV_QUAST="quast"
 ENV_ANTISMASH="antismash"
 ENV_METADECODER="metadecoder"
+ENV_GALAH="galah"
 THREADS="16"
 DO_INSTALL_NEXTFLOW=0
 DO_INSTALL_ENVS=0
@@ -41,6 +43,7 @@ DO_INSTALL_CHECKM2_ENV=0
 DO_INSTALL_QUAST_ENV=0
 DO_INSTALL_ANTISMASH_ENV=0
 DO_INSTALL_METADECODER_ENV=0
+DO_INSTALL_GALAH_ENV=0
 DO_DOWNLOAD_CORE_DB=0
 DO_DOWNLOAD_KRAKEN2=0
 DO_DOWNLOAD_GTDBTK=0
@@ -89,6 +92,7 @@ Options:
   --install-quast-env       Create/update only the MetaQUAST conda environment
   --install-antismash-env   Create/update only the antiSMASH conda environment
   --install-metadecoder-env Create/update only the MetaDecoder conda environment
+  --install-galah-env       Create/update only the Galah conda environment
   --download-core-db        Download/build hg38, PhiX, MetaPhlAn, HUMAnN, eggNOG, CheckM2
   --download-kraken2        Download prebuilt Ben Langmead Kraken2/Bracken Standard DB
   --download-gtdbtk         Also download GTDB-Tk DB; needs ~110GB disk
@@ -231,6 +235,7 @@ while [[ $# -gt 0 ]]; do
     --install-quast-env) DO_INSTALL_QUAST_ENV=1; shift ;;
     --install-antismash-env) DO_INSTALL_ANTISMASH_ENV=1; shift ;;
     --install-metadecoder-env) DO_INSTALL_METADECODER_ENV=1; shift ;;
+    --install-galah-env) DO_INSTALL_GALAH_ENV=1; shift ;;
     --download-core-db) DO_DOWNLOAD_CORE_DB=1; shift ;;
     --download-kraken2) DO_DOWNLOAD_KRAKEN2=1; shift ;;
     --download-gtdbtk) DO_DOWNLOAD_GTDBTK=1; shift ;;
@@ -365,6 +370,12 @@ process {
   withName: METADECODER {
     conda = "${ENV_DIR}/${ENV_METADECODER}"
   }
+  withName: GALAH {
+    conda = "${ENV_DIR}/${ENV_GALAH}"
+  }
+  withName: GALAHMULTIBIN {
+    conda = "${ENV_DIR}/${ENV_GALAH}"
+  }
 }
 EOF
 if [[ "${DO_INSTALL_NEXTFLOW}" -eq 1 ]]; then
@@ -378,6 +389,7 @@ if [[ "${DO_INSTALL_ENVS}" -eq 1 ]]; then
   DO_INSTALL_QUAST_ENV=1
   DO_INSTALL_ANTISMASH_ENV=1
   DO_INSTALL_METADECODER_ENV=1
+  DO_INSTALL_GALAH_ENV=1
 fi
 
 if [[ "${DO_INSTALL_BASIC_ENV}" -eq 1 ]]; then
@@ -412,6 +424,12 @@ if [[ "${DO_INSTALL_METADECODER_ENV}" -eq 1 ]]; then
   log "Installing MetaDecoder conda environment from docs/environment/metadecoder.yml"
   run_cmd bash -lc "$(conda_create_or_update_cmd "${ENV_METADECODER}" "metadecoder.yml")"
   run_cmd bash -lc "source '${CONDA_ROOT}/etc/profile.d/conda.sh' && conda run -n '${ENV_METADECODER}' metadecoder --version"
+fi
+
+if [[ "${DO_INSTALL_GALAH_ENV}" -eq 1 ]]; then
+  log "Installing Galah conda environment from docs/environment/galah.yml"
+  run_cmd bash -lc "$(conda_create_or_update_cmd "${ENV_GALAH}" "galah.yml")"
+  run_cmd bash -lc "source '${CONDA_ROOT}/etc/profile.d/conda.sh' && conda run -n '${ENV_GALAH}' galah --version"
 fi
 
 if [[ "${DO_DOWNLOAD_CORE_DB}" -eq 1 ]]; then

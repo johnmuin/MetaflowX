@@ -1,4 +1,3 @@
-
 process PIPELINEERROR {
 
     label 'process_low'
@@ -31,8 +30,8 @@ process PIPELINEERROR {
 
     OUTLOG
 
-    if [ -n ${webhookurl} ]; then
-        curl ${webhookurl} \\
+    if [ -n "${webhookurl}" ]; then
+        curl "${webhookurl}" \\
             -H 'Content-Type: application/json' \\
             -d '
             {
