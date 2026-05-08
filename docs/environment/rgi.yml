@@ -1,0 +1,8 @@
+channels:
+  - conda-forge
+  - bioconda
+  - rgi
+dependencies:
+  - python=3.10
+  - rgi
+  - diamond

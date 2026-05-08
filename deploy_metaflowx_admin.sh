@@ -16,6 +16,14 @@ set -Eeuo pipefail
 #   --install-antismash-env create/update only the antiSMASH conda environment
 #   --install-metadecoder-env create/update only the MetaDecoder conda environment
 #   --install-galah-env create/update only the Galah conda environment
+#   --install-rgi-env create/update only the RGI conda environment
+#   --install-bigmap-env create/update only the BiG-MAP conda environment
+#   --install-metabinner-env create/update only the MetaBinner conda environment
+#   --install-comebin-env create/update only the COMEBin conda environment
+#   --install-binny-env create/update only the binny runtime
+#   --install-deepurify-env create/update only the Deepurify conda environment
+#   --install-vamb-env create/update only the Vamb conda environment
+#   --install-gtdbtk-env create/update only the GTDB-Tk conda environment
 #   --download-core-db   download/build host hg38, PhiX, MetaPhlAn, HUMAnN, eggNOG, CheckM2
 #   --download-antismash-db download antiSMASH databases under DB_ROOT
 #
@@ -35,6 +43,14 @@ ENV_QUAST="quast"
 ENV_ANTISMASH="antismash"
 ENV_METADECODER="metadecoder"
 ENV_GALAH="galah"
+ENV_RGI="rgi"
+ENV_BIGMAP="bigmap"
+ENV_METABINNER="metabinner"
+ENV_COMEBIN="comebin"
+ENV_BINNY="binny"
+ENV_DEEPURIFY="deepurify"
+ENV_VAMB="vamb"
+ENV_GTDBTK="gtdbtk"
 THREADS="16"
 DO_INSTALL_NEXTFLOW=0
 DO_INSTALL_ENVS=0
@@ -44,6 +60,14 @@ DO_INSTALL_QUAST_ENV=0
 DO_INSTALL_ANTISMASH_ENV=0
 DO_INSTALL_METADECODER_ENV=0
 DO_INSTALL_GALAH_ENV=0
+DO_INSTALL_RGI_ENV=0
+DO_INSTALL_BIGMAP_ENV=0
+DO_INSTALL_METABINNER_ENV=0
+DO_INSTALL_COMEBIN_ENV=0
+DO_INSTALL_BINNY_ENV=0
+DO_INSTALL_DEEPURIFY_ENV=0
+DO_INSTALL_VAMB_ENV=0
+DO_INSTALL_GTDBTK_ENV=0
 DO_DOWNLOAD_CORE_DB=0
 DO_DOWNLOAD_KRAKEN2=0
 DO_DOWNLOAD_GTDBTK=0
@@ -93,6 +117,14 @@ Options:
   --install-antismash-env   Create/update only the antiSMASH conda environment
   --install-metadecoder-env Create/update only the MetaDecoder conda environment
   --install-galah-env       Create/update only the Galah conda environment
+  --install-rgi-env         Create/update only the RGI conda environment
+  --install-bigmap-env      Create/update only the BiG-MAP conda environment
+  --install-metabinner-env  Create/update only the MetaBinner conda environment
+  --install-comebin-env     Create/update only the COMEBin conda environment
+  --install-binny-env       Create/update only the binny runtime
+  --install-deepurify-env   Create/update only the Deepurify conda environment
+  --install-vamb-env        Create/update only the Vamb conda environment
+  --install-gtdbtk-env      Create/update only the GTDB-Tk conda environment
   --download-core-db        Download/build hg38, PhiX, MetaPhlAn, HUMAnN, eggNOG, CheckM2
   --download-kraken2        Download prebuilt Ben Langmead Kraken2/Bracken Standard DB
   --download-gtdbtk         Also download GTDB-Tk DB; needs ~110GB disk
@@ -236,6 +268,14 @@ while [[ $# -gt 0 ]]; do
     --install-antismash-env) DO_INSTALL_ANTISMASH_ENV=1; shift ;;
     --install-metadecoder-env) DO_INSTALL_METADECODER_ENV=1; shift ;;
     --install-galah-env) DO_INSTALL_GALAH_ENV=1; shift ;;
+    --install-rgi-env) DO_INSTALL_RGI_ENV=1; shift ;;
+    --install-bigmap-env) DO_INSTALL_BIGMAP_ENV=1; shift ;;
+    --install-metabinner-env) DO_INSTALL_METABINNER_ENV=1; shift ;;
+    --install-comebin-env) DO_INSTALL_COMEBIN_ENV=1; shift ;;
+    --install-binny-env) DO_INSTALL_BINNY_ENV=1; shift ;;
+    --install-deepurify-env) DO_INSTALL_DEEPURIFY_ENV=1; shift ;;
+    --install-vamb-env) DO_INSTALL_VAMB_ENV=1; shift ;;
+    --install-gtdbtk-env) DO_INSTALL_GTDBTK_ENV=1; shift ;;
     --download-core-db) DO_DOWNLOAD_CORE_DB=1; shift ;;
     --download-kraken2) DO_DOWNLOAD_KRAKEN2=1; shift ;;
     --download-gtdbtk) DO_DOWNLOAD_GTDBTK=1; shift ;;
@@ -347,6 +387,8 @@ params {
 
   // Optional functional/specialized DBs
   antismash_db = "${DB_ROOT}/antismash"
+  binny_path = "${ENV_DIR}/${ENV_BINNY}/opt/binny"
+  metabinner_path = "${ENV_DIR}/${ENV_METABINNER}/bin"
   cat_gtdb_db = "${DB_ROOT}/cat_pack/GTDB/current"
   bigspace_db = "${DB_ROOT}/bigmap/Pfam-A.hmm"
   CARD_db = "${DB_ROOT}/CARD"
@@ -376,6 +418,36 @@ process {
   withName: GALAHMULTIBIN {
     conda = "${ENV_DIR}/${ENV_GALAH}"
   }
+  withName: RGI {
+    conda = "${ENV_DIR}/${ENV_RGI}"
+  }
+  withName: BIGMAP {
+    conda = "${ENV_DIR}/${ENV_BIGMAP}"
+  }
+  withName: METABINNER {
+    conda = "${ENV_DIR}/${ENV_METABINNER}"
+  }
+  withName: COMEBIN {
+    conda = "${ENV_DIR}/${ENV_COMEBIN}"
+  }
+  withName: BINNY {
+    conda = "${ENV_DIR}/${ENV_BINNY}"
+  }
+  withName: DEEPURIFYCLEAN {
+    conda = "${ENV_DIR}/${ENV_DEEPURIFY}"
+  }
+  withName: DEEPURIFYREBIN {
+    conda = "${ENV_DIR}/${ENV_DEEPURIFY}"
+  }
+  withName: DEEPURIFYCLEANRENAME {
+    conda = "${ENV_DIR}/${ENV_DEEPURIFY}"
+  }
+  withName: VAMBBIN {
+    conda = "${ENV_DIR}/${ENV_VAMB}"
+  }
+  withName: GTDB {
+    conda = "${ENV_DIR}/${ENV_GTDBTK}"
+  }
 }
 EOF
 if [[ "${DO_INSTALL_NEXTFLOW}" -eq 1 ]]; then
@@ -390,6 +462,14 @@ if [[ "${DO_INSTALL_ENVS}" -eq 1 ]]; then
   DO_INSTALL_ANTISMASH_ENV=1
   DO_INSTALL_METADECODER_ENV=1
   DO_INSTALL_GALAH_ENV=1
+  DO_INSTALL_RGI_ENV=1
+  DO_INSTALL_BIGMAP_ENV=1
+  DO_INSTALL_METABINNER_ENV=1
+  DO_INSTALL_COMEBIN_ENV=1
+  DO_INSTALL_BINNY_ENV=1
+  DO_INSTALL_DEEPURIFY_ENV=1
+  DO_INSTALL_VAMB_ENV=1
+  DO_INSTALL_GTDBTK_ENV=1
 fi
 
 if [[ "${DO_INSTALL_BASIC_ENV}" -eq 1 ]]; then
@@ -430,6 +510,54 @@ if [[ "${DO_INSTALL_GALAH_ENV}" -eq 1 ]]; then
   log "Installing Galah conda environment from docs/environment/galah.yml"
   run_cmd bash -lc "$(conda_create_or_update_cmd "${ENV_GALAH}" "galah.yml")"
   run_cmd bash -lc "source '${CONDA_ROOT}/etc/profile.d/conda.sh' && conda run -n '${ENV_GALAH}' galah --version"
+fi
+
+if [[ "${DO_INSTALL_RGI_ENV}" -eq 1 ]]; then
+  log "Installing RGI conda environment from docs/environment/rgi.yml"
+  run_cmd bash -lc "$(conda_create_or_update_cmd "${ENV_RGI}" "rgi.yml")"
+  run_cmd bash -lc "source '${CONDA_ROOT}/etc/profile.d/conda.sh' && conda run -n '${ENV_RGI}' rgi main --version"
+fi
+
+if [[ "${DO_INSTALL_BIGMAP_ENV}" -eq 1 ]]; then
+  log "Installing BiG-MAP conda environment from docs/environment/bigmap.yml"
+  run_cmd bash -lc "$(conda_create_or_update_cmd "${ENV_BIGMAP}" "bigmap.yml")"
+  run_cmd bash -lc "source '${CONDA_ROOT}/etc/profile.d/conda.sh' && conda activate '${ENV_BIGMAP}' && mkdir -p '${ENV_DIR}/${ENV_BIGMAP}/opt' && if [[ ! -d '${ENV_DIR}/${ENV_BIGMAP}/opt/BiG-MAP/.git' ]]; then git clone https://github.com/medema-group/BiG-MAP.git '${ENV_DIR}/${ENV_BIGMAP}/opt/BiG-MAP'; fi && chmod +x '${ENV_DIR}/${ENV_BIGMAP}/opt/BiG-MAP/src/'*.py && cp -f '${ENV_DIR}/${ENV_BIGMAP}/opt/BiG-MAP/src/'*.py '${ENV_DIR}/${ENV_BIGMAP}/bin/' && command -v BiG-MAP.family.py && command -v BiG-MAP.map.py"
+fi
+
+if [[ "${DO_INSTALL_METABINNER_ENV}" -eq 1 ]]; then
+  log "Installing MetaBinner conda environment from docs/environment/metabinner.yml"
+  run_cmd bash -lc "$(conda_create_or_update_cmd "${ENV_METABINNER}" "metabinner.yml")"
+  run_cmd bash -lc "source '${CONDA_ROOT}/etc/profile.d/conda.sh' && conda run -n '${ENV_METABINNER}' run_metabinner.sh --help >/dev/null 2>&1 || conda run -n '${ENV_METABINNER}' which run_metabinner.sh"
+fi
+
+if [[ "${DO_INSTALL_COMEBIN_ENV}" -eq 1 ]]; then
+  log "Installing COMEBin conda environment from docs/environment/comebin.yml"
+  run_cmd bash -lc "$(conda_create_or_update_cmd "${ENV_COMEBIN}" "comebin.yml")"
+  run_cmd bash -lc "source '${CONDA_ROOT}/etc/profile.d/conda.sh' && conda run -n '${ENV_COMEBIN}' which run_comebin.sh"
+fi
+
+if [[ "${DO_INSTALL_BINNY_ENV}" -eq 1 ]]; then
+  log "Installing binny runtime from docs/environment/binny.yml"
+  run_cmd bash -lc "$(conda_create_or_update_cmd "${ENV_BINNY}" "binny.yml")"
+  run_cmd bash -lc "source '${CONDA_ROOT}/etc/profile.d/conda.sh' && conda activate '${ENV_BINNY}' && mkdir -p '${ENV_DIR}/${ENV_BINNY}/opt' && if [[ ! -d '${ENV_DIR}/${ENV_BINNY}/opt/binny/.git' ]]; then git clone https://github.com/a-h-b/binny.git '${ENV_DIR}/${ENV_BINNY}/opt/binny'; fi && cd '${ENV_DIR}/${ENV_BINNY}/opt/binny' && ./binny -i config/config.init.yaml && test -x ./binny"
+fi
+
+if [[ "${DO_INSTALL_DEEPURIFY_ENV}" -eq 1 ]]; then
+  log "Installing Deepurify conda environment from docs/environment/deepurify.yml"
+  run_cmd bash -lc "$(conda_create_or_update_cmd "${ENV_DEEPURIFY}" "deepurify.yml")"
+  run_cmd bash -lc "source '${CONDA_ROOT}/etc/profile.d/conda.sh' && conda run -n '${ENV_DEEPURIFY}' deepurify --version"
+fi
+
+if [[ "${DO_INSTALL_VAMB_ENV}" -eq 1 ]]; then
+  log "Installing Vamb conda environment from docs/environment/vamb.yml"
+  run_cmd bash -lc "$(conda_create_or_update_cmd "${ENV_VAMB}" "vamb.yml")"
+  run_cmd bash -lc "source '${CONDA_ROOT}/etc/profile.d/conda.sh' && conda run -n '${ENV_VAMB}' vamb --version"
+fi
+
+if [[ "${DO_INSTALL_GTDBTK_ENV}" -eq 1 ]]; then
+  log "Installing GTDB-Tk conda environment from docs/environment/gtdbtk.yml"
+  run_cmd bash -lc "$(conda_create_or_update_cmd "${ENV_GTDBTK}" "gtdbtk.yml")"
+  run_cmd bash -lc "source '${CONDA_ROOT}/etc/profile.d/conda.sh' && conda run -n '${ENV_GTDBTK}' gtdbtk --version"
 fi
 
 if [[ "${DO_DOWNLOAD_CORE_DB}" -eq 1 ]]; then

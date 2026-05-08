@@ -1,0 +1,16 @@
+channels:
+  - conda-forge
+  - bioconda
+dependencies:
+  - python=3.8
+  - git
+  - biopython
+  - numpy
+  - pandas
+  - scipy
+  - scikit-learn
+  - hmmer
+  - diamond
+  - blast
+  - bowtie2
+  - samtools

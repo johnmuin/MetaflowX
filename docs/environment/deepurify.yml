@@ -1,0 +1,12 @@
+channels:
+  - conda-forge
+  - bioconda
+dependencies:
+  - python=3.8
+  - pip
+  - pytorch
+  - prodigal
+  - hmmer
+  - diamond
+  - pip:
+      - Deepurify==2.3.7
