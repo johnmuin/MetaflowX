@@ -25,13 +25,22 @@ process RGI {
         
     rgi clean --local
 
+    test -s "${CARD_db}/card.json"
+    test -s "${CARD_db}/card_database.fasta"
+    test -s "${CARD_db}/card_database_all.fasta"
+    test -s "${CARD_db}/wildcard_database.fasta"
+    test -s "${CARD_db}/wildcard_database_all.fasta"
+    test -s "${CARD_db}/wildcard/index-for-model-sequences.txt"
+    test -s "${CARD_db}/wildcard/all_amr_61mers.txt"
+    test -s "${CARD_db}/wildcard/61_kmer_db.json"
+
     #Load the database.
     rgi load \
     --card_json ${CARD_db}/card.json \
-    --card_annotation ${CARD_db}/card_database_v3.2.7.fasta \
-    --card_annotation_all_models ${CARD_db}/card_database_v3.2.7_all.fasta \
-    --wildcard_annotation ${CARD_db}/wildcard_database_v3.2.7.fasta \
-    --wildcard_annotation_all_models ${CARD_db}/wildcard_database_v3.2.7_all.fasta \
+    --card_annotation ${CARD_db}/card_database.fasta \
+    --card_annotation_all_models ${CARD_db}/card_database_all.fasta \
+    --wildcard_annotation ${CARD_db}/wildcard_database.fasta \
+    --wildcard_annotation_all_models ${CARD_db}/wildcard_database_all.fasta \
     --wildcard_index ${CARD_db}/wildcard/index-for-model-sequences.txt \
     --amr_kmers ${CARD_db}/wildcard/all_amr_61mers.txt \
     --kmer_database ${CARD_db}/wildcard/61_kmer_db.json  \
