@@ -342,7 +342,6 @@ params {
 
   // Optional functional/specialized DBs
   antismash_db = "${DB_ROOT}/antismash"
-  antismash_options = "--databases ${DB_ROOT}/antismash --genefinding-tool prodigal-m --minlength \${params.min_contig_len}"
   cat_gtdb_db = "${DB_ROOT}/cat_pack/GTDB/current"
   bigspace_db = "${DB_ROOT}/bigmap/Pfam-A.hmm"
   CARD_db = "${DB_ROOT}/CARD"

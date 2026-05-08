@@ -1,4 +1,3 @@
-
 process ANTISMASH {
 
     tag "$id"
@@ -17,10 +16,11 @@ process ANTISMASH {
 
     script:
     def antismash_options = params.antismash_options ?: ""
+    def antismash_db_options = params.antismash_db ? "--databases ${params.antismash_db}" : ""
     """
 
     ln -s ${contigs} ./all.bin.fa
-    antismash all.bin.fa -c ${task.cpus} ${antismash_options}
+    antismash all.bin.fa -c ${task.cpus} ${antismash_db_options} ${antismash_options}
 
     mv all.bin/all.bin.zip ${id}.zip
 

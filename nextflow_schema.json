@@ -577,6 +577,12 @@
                     "description": "Options for antiSMASH",
                     "fa_icon": "fas fa-filter"
                 },
+                "antismash_db": {
+                    "type": "string",
+                    "description": "Path to antiSMASH database directory",
+                    "fa_icon": "fas fa-database",
+                    "format": "directory-path"
+                },
                 "bigmap_family_options": {
                     "type": "string",
                     "fa_icon": "fas fa-filter",
