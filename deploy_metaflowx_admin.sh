@@ -16,6 +16,7 @@ set -Eeuo pipefail
 #   --install-antismash-env create/update only the antiSMASH conda environment
 #   --install-metadecoder-env create/update only the MetaDecoder conda environment
 #   --download-core-db   download/build host hg38, PhiX, MetaPhlAn, HUMAnN, eggNOG, CheckM2
+#   --download-antismash-db download antiSMASH databases under DB_ROOT
 #
 # Example:
 #   bash deploy_metaflowx_admin.sh
@@ -48,6 +49,7 @@ DO_DOWNLOAD_VFDB_DB=0
 DO_DOWNLOAD_CARD_DB=0
 DO_DOWNLOAD_DEEPURIFY_DB=0
 DO_DOWNLOAD_CAT_DB=0
+DO_DOWNLOAD_ANTISMASH_DB=0
 RUN_AS_USER=""
 USE_ENV_PROXY=0
 KRAKEN2_STANDARD_URL="https://genome-idx.s3.amazonaws.com/kraken/k2_standard_20260226.tar.gz"
@@ -96,6 +98,7 @@ Options:
   --download-deepurify-db   Download Deepurify DB with gdown
   --deepurify-archive PATH  Use an already downloaded Deepurify DB archive
   --download-cat-db         Download prebuilt CAT_pack GTDB DB
+  --download-antismash-db   Download antiSMASH databases under DB_ROOT
   -h, --help                Show this help
 
 Notes:
@@ -237,6 +240,7 @@ while [[ $# -gt 0 ]]; do
     --download-deepurify-db) DO_DOWNLOAD_DEEPURIFY_DB=1; shift ;;
     --deepurify-archive) DEEPURIFY_ARCHIVE="$2"; shift 2 ;;
     --download-cat-db) DO_DOWNLOAD_CAT_DB=1; shift ;;
+    --download-antismash-db) DO_DOWNLOAD_ANTISMASH_DB=1; shift ;;
     -h|--help) usage; exit 0 ;;
     *) die "Unknown option: $1" ;;
   esac
@@ -279,6 +283,7 @@ mkdir -p \
   "${DB_ROOT}/gtdbtk/release220/metadata" \
   "${DB_ROOT}/gtdbtk/release220/mash" \
   "${DB_ROOT}/cat_pack/GTDB/release226" \
+  "${DB_ROOT}/antismash" \
   "${DB_ROOT}/bigmap" \
   "${DB_ROOT}/CARD" \
   "${DB_ROOT}/VFDB" \
@@ -336,6 +341,8 @@ params {
   gtdb_bacterial_metadata = "${DB_ROOT}/gtdbtk/release220/metadata/bac120_metadata_r220.tsv.gz"
 
   // Optional functional/specialized DBs
+  antismash_db = "${DB_ROOT}/antismash"
+  antismash_options = "--databases ${DB_ROOT}/antismash --genefinding-tool prodigal-m --minlength \${params.min_contig_len}"
   cat_gtdb_db = "${DB_ROOT}/cat_pack/GTDB/current"
   bigspace_db = "${DB_ROOT}/bigmap/Pfam-A.hmm"
   CARD_db = "${DB_ROOT}/CARD"
@@ -399,8 +406,7 @@ fi
 if [[ "${DO_INSTALL_ANTISMASH_ENV}" -eq 1 ]]; then
   log "Installing antiSMASH conda environment from docs/environment/antismash.yml"
   run_cmd bash -lc "$(conda_create_or_update_cmd "${ENV_ANTISMASH}" "antismash.yml")"
-  log "Installing antiSMASH bundled databases into ${ENV_ANTISMASH}"
-  run_cmd bash -lc "if [[ '${USE_ENV_PROXY}' != '1' ]]; then unset http_proxy https_proxy HTTP_PROXY HTTPS_PROXY all_proxy ALL_PROXY; fi; source '${CONDA_ROOT}/etc/profile.d/conda.sh' && conda run -n '${ENV_ANTISMASH}' antismash --version && conda run -n '${ENV_ANTISMASH}' download-antismash-databases && find '${ENV_DIR}/${ENV_ANTISMASH}/lib' -path '*/antismash/databases/mite/*/mite.fasta' -type f | grep -q ."
+  run_cmd bash -lc "source '${CONDA_ROOT}/etc/profile.d/conda.sh' && conda run -n '${ENV_ANTISMASH}' antismash --version"
 fi
 
 if [[ "${DO_INSTALL_METADECODER_ENV}" -eq 1 ]]; then
@@ -672,6 +678,11 @@ find . -maxdepth 1 -type f -name 'wildcard_database_v*_all.fasta' | grep -q .
 test -s wildcard/index-for-model-sequences.txt
 test -s wildcard/all_amr_61mers.txt
 test -s wildcard/61_kmer_db.json"
+fi
+
+if [[ "${DO_DOWNLOAD_ANTISMASH_DB}" -eq 1 ]]; then
+  log "Installing antiSMASH databases into ${DB_ROOT}/antismash"
+  run_cmd bash -lc "if [[ '${USE_ENV_PROXY}' != '1' ]]; then unset http_proxy https_proxy HTTP_PROXY HTTPS_PROXY all_proxy ALL_PROXY; fi; mkdir -p '${DB_ROOT}/antismash'; source '${CONDA_ROOT}/etc/profile.d/conda.sh' && conda run -n '${ENV_ANTISMASH}' download-antismash-databases --database-dir '${DB_ROOT}/antismash' && find '${DB_ROOT}/antismash/mite' -path '*/mite.fasta' -type f | grep -q ."
 fi
 
 if [[ "${DO_DOWNLOAD_DEEPURIFY_DB}" -eq 1 ]]; then
