@@ -503,7 +503,8 @@ fi
 if [[ "${DO_INSTALL_METADECODER_ENV}" -eq 1 ]]; then
   log "Installing MetaDecoder conda environment from docs/environment/metadecoder.yml"
   run_cmd bash -lc "$(conda_create_or_update_cmd "${ENV_METADECODER}" "metadecoder.yml")"
-  run_cmd bash -lc "source '${CONDA_ROOT}/etc/profile.d/conda.sh' && conda run -n '${ENV_METADECODER}' metadecoder --version"
+  run_cmd bash -lc "source '${CONDA_ROOT}/etc/profile.d/conda.sh' && conda activate '${ENV_METADECODER}' && find \"\${CONDA_PREFIX}/lib\" -path '*/site-packages/metadecoder/fraggenescan' -exec chmod 755 {} +"
+  run_cmd bash -lc "source '${CONDA_ROOT}/etc/profile.d/conda.sh' && conda run -n '${ENV_METADECODER}' metadecoder -h >/dev/null"
 fi
 
 if [[ "${DO_INSTALL_GALAH_ENV}" -eq 1 ]]; then
@@ -521,7 +522,15 @@ fi
 if [[ "${DO_INSTALL_BIGMAP_ENV}" -eq 1 ]]; then
   log "Installing BiG-MAP conda environment from docs/environment/bigmap.yml"
   run_cmd bash -lc "$(conda_create_or_update_cmd "${ENV_BIGMAP}" "bigmap.yml")"
-  run_cmd bash -lc "source '${CONDA_ROOT}/etc/profile.d/conda.sh' && conda activate '${ENV_BIGMAP}' && mkdir -p '${ENV_DIR}/${ENV_BIGMAP}/opt' && if [[ ! -d '${ENV_DIR}/${ENV_BIGMAP}/opt/BiG-MAP/.git' ]]; then git clone https://github.com/medema-group/BiG-MAP.git '${ENV_DIR}/${ENV_BIGMAP}/opt/BiG-MAP'; fi && chmod +x '${ENV_DIR}/${ENV_BIGMAP}/opt/BiG-MAP/src/'*.py && cp -f '${ENV_DIR}/${ENV_BIGMAP}/opt/BiG-MAP/src/'*.py '${ENV_DIR}/${ENV_BIGMAP}/bin/' && command -v BiG-MAP.family.py && command -v BiG-MAP.map.py"
+  run_cmd bash -lc "source '${CONDA_ROOT}/etc/profile.d/conda.sh' && conda activate '${ENV_BIGMAP}' && BIN_HOME='${ENV_DIR}/${ENV_BIGMAP}' && mkdir -p \"\${BIN_HOME}/opt\" && if [[ ! -d \"\${BIN_HOME}/opt/BiG-MAP/.git\" ]]; then git clone https://github.com/medema-group/BiG-MAP.git \"\${BIN_HOME}/opt/BiG-MAP\"; fi && cat > \"\${BIN_HOME}/bin/BiG-MAP.family.py\" <<'EOF'
+#!/usr/bin/env bash
+exec python \"${ENV_DIR}/${ENV_BIGMAP}/opt/BiG-MAP/bigmap/family.py\" \"\$@\"
+EOF
+cat > \"\${BIN_HOME}/bin/BiG-MAP.map.py\" <<'EOF'
+#!/usr/bin/env bash
+exec python \"${ENV_DIR}/${ENV_BIGMAP}/opt/BiG-MAP/bigmap/map.py\" \"\$@\"
+EOF
+chmod +x \"\${BIN_HOME}/bin/BiG-MAP.family.py\" \"\${BIN_HOME}/bin/BiG-MAP.map.py\" && command -v BiG-MAP.family.py && command -v BiG-MAP.map.py"
 fi
 
 if [[ "${DO_INSTALL_METABINNER_ENV}" -eq 1 ]]; then
