@@ -2,7 +2,7 @@ channels:
   - conda-forge
   - bioconda
 dependencies:
-  - python=3.8
+  - python=3.11
   - git
   - biopython
   - importlib_resources
@@ -16,3 +16,16 @@ dependencies:
   - blast
   - bowtie2
   - samtools
+  - pyhmmer
+  - fasttree
+  - sortedcontainers
+  - sqlalchemy
+  - sourmash_plugin_branchwater
+  - tqdm
+  - matplotlib
+  - requests
+  - pip
+  - pip:
+      - click
+      - PyYAML
+      - importlib-metadata
