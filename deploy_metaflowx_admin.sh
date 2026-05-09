@@ -95,6 +95,7 @@ CARD_VARIANTS_URL="https://card.mcmaster.ca/latest/variants"
 DEEPURIFY_GDRIVE_ID="1TCVePKE98o1pNN2U6naILXHqX4tuea5a"
 DEEPURIFY_ARCHIVE=""
 CAT_GTDB_URL="http://tbb.bio.uu.nl/tina/CAT_pack_prepare/20231120_CAT_gtdb.tar.gz"
+GTDBTK_R220_MASH_URL="https://zenodo.org/records/11494307/files/gtdb_r220.msh?download=1"
 
 usage() {
   cat <<USAGE
@@ -385,7 +386,7 @@ params {
   // MAG quality and taxonomy
   checkm2_db = "${DB_ROOT}/checkm2/CheckM2_database/uniref100.KO.1.dmnd"
   gtdbtk_db = "${DB_ROOT}/gtdbtk/release220"
-  mash_db = "${DB_ROOT}/gtdbtk/release220/mash"
+  mash_db = "${DB_ROOT}/gtdbtk/release220/mash/gtdb_r220.msh"
   gtdb_archaeal_metadata = "${DB_ROOT}/gtdbtk/release220/metadata/ar53_metadata_r220.tsv.gz"
   gtdb_bacterial_metadata = "${DB_ROOT}/gtdbtk/release220/metadata/bac120_metadata_r220.tsv.gz"
 
@@ -394,6 +395,7 @@ params {
   binny_path = "${ENV_DIR}/${ENV_BINNY}/opt/binny"
   metabinner_path = "${ENV_DIR}/${ENV_METABINNER}/bin"
   cat_gtdb_db = "${DB_ROOT}/cat_pack/GTDB/current"
+  bigspace_path = "${ENV_DIR}/${ENV_BIGMAP}/opt/BiG-SCAPE"
   bigspace_db = "${DB_ROOT}/bigmap/Pfam-A.hmm"
   CARD_db = "${DB_ROOT}/CARD"
   VFDB_db = "${DB_ROOT}/VFDB/VFDB_setB_pro.fas.S.fasta"
@@ -408,6 +410,9 @@ process {
     conda = "${ENV_DIR}/${ENV_CHECKM2}"
   }
   withName: METAQUAST {
+    conda = "${ENV_DIR}/${ENV_QUAST}"
+  }
+  withName: QUAST_SAMPLE_BINS {
     conda = "${ENV_DIR}/${ENV_QUAST}"
   }
   withName: ANTISMASH {
@@ -533,7 +538,7 @@ fi
 if [[ "${DO_INSTALL_BIGMAP_ENV}" -eq 1 ]]; then
   log "Installing BiG-MAP conda environment from docs/environment/bigmap.yml"
   run_cmd bash -lc "$(conda_create_or_update_cmd "${ENV_BIGMAP}" "bigmap.yml")"
-  run_cmd bash -lc "source '${CONDA_ROOT}/etc/profile.d/conda.sh' && conda activate '${ENV_BIGMAP}' && BIN_HOME='${ENV_DIR}/${ENV_BIGMAP}' && mkdir -p \"\${BIN_HOME}/opt\" && if [[ ! -d \"\${BIN_HOME}/opt/BiG-MAP/.git\" ]]; then git clone https://github.com/medema-group/BiG-MAP.git \"\${BIN_HOME}/opt/BiG-MAP\"; fi && cat > \"\${BIN_HOME}/bin/BiG-MAP.family.py\" <<'EOF'
+  run_cmd bash -lc "source '${CONDA_ROOT}/etc/profile.d/conda.sh' && conda activate '${ENV_BIGMAP}' && BIN_HOME='${ENV_DIR}/${ENV_BIGMAP}' && mkdir -p \"\${BIN_HOME}/opt\" && if [[ ! -d \"\${BIN_HOME}/opt/BiG-MAP/.git\" ]]; then git clone https://github.com/medema-group/BiG-MAP.git \"\${BIN_HOME}/opt/BiG-MAP\"; fi && if [[ ! -d \"\${BIN_HOME}/opt/BiG-SCAPE/.git\" ]]; then git clone https://github.com/medema-group/BiG-SCAPE.git \"\${BIN_HOME}/opt/BiG-SCAPE\"; fi && test -f \"\${BIN_HOME}/opt/BiG-SCAPE/bigscape.py\" && cat > \"\${BIN_HOME}/bin/BiG-MAP.family.py\" <<'EOF'
 #!/usr/bin/env bash
 exec python \"${ENV_DIR}/${ENV_BIGMAP}/opt/BiG-MAP/bigmap/family.py\" \"\$@\"
 EOF
@@ -747,6 +752,10 @@ tar xvzf gtdbtk_r220_data.tar.gz -C '${DB_ROOT}/gtdbtk/release220' --strip-compo
 cd '${DB_ROOT}/gtdbtk/release220/metadata'
 download_gzip 'https://data.gtdb.ecogenomic.org/releases/release220/220.0/ar53_metadata_r220.tsv.gz' 'ar53_metadata_r220.tsv.gz'
 download_gzip 'https://data.gtdb.ecogenomic.org/releases/release220/220.0/bac120_metadata_r220.tsv.gz' 'bac120_metadata_r220.tsv.gz'"
+  run_cmd bash -lc "$(download_helpers_cmd)
+cd '${DB_ROOT}/gtdbtk/release220/mash'
+download_file '${GTDBTK_R220_MASH_URL}' 'gtdb_r220.msh'
+echo 'bb478bc6052f3ad94181863f831e3c85  gtdb_r220.msh' | md5sum -c -"
 fi
 
 if [[ "${DO_DOWNLOAD_BIGMAP_DB}" -eq 1 ]]; then
@@ -838,6 +847,7 @@ copy_required() {
 copy_versioned_required() {
   local prefix=\"\$1\"
   local suffix=\"\$2\"
+  local compat_dest=\"\${3:-}\"
   local src
   local dest
   src=\$(find_versioned_card_file \"\${prefix}\" \"\${suffix}\")
@@ -848,16 +858,23 @@ copy_versioned_required() {
   dest=\$(basename \"\${src}\")
   echo \"Installing CARD file \${src} as \${dest}\"
   cp -f \"\${src}\" \"\${dest}\"
+  if [[ -n \"\${compat_dest}\" ]]; then
+    cp -f \"\${src}\" \"\${compat_dest}\"
+  fi
 }
 copy_required 'card.json' 'card.json'
-copy_versioned_required 'card_database' '.fasta'
-copy_versioned_required 'card_database' '_all.fasta'
-copy_versioned_required 'wildcard_database' '.fasta'
-copy_versioned_required 'wildcard_database' '_all.fasta'
+copy_versioned_required 'card_database' '.fasta' 'card_database.fasta'
+copy_versioned_required 'card_database' '_all.fasta' 'card_database_all.fasta'
+copy_versioned_required 'wildcard_database' '.fasta' 'wildcard_database.fasta'
+copy_versioned_required 'wildcard_database' '_all.fasta' 'wildcard_database_all.fasta'
 copy_required 'index-for-model-sequences.txt' 'wildcard/index-for-model-sequences.txt'
 copy_required 'all_amr_61mers.txt' 'wildcard/all_amr_61mers.txt'
 copy_required '61_kmer_db.json' 'wildcard/61_kmer_db.json'
 test -s card.json
+test -s card_database.fasta
+test -s card_database_all.fasta
+test -s wildcard_database.fasta
+test -s wildcard_database_all.fasta
 find . -maxdepth 1 -type f -name 'card_database_v*.fasta' ! -name '*_all.fasta' | grep -q .
 find . -maxdepth 1 -type f -name 'card_database_v*_all.fasta' | grep -q .
 find . -maxdepth 1 -type f -name 'wildcard_database_v*.fasta' ! -name '*_all.fasta' | grep -q .

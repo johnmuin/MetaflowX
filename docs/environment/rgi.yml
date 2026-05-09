@@ -3,6 +3,8 @@ channels:
   - bioconda
   - rgi
 dependencies:
-  - python=3.10
-  - rgi
+  - python=3.9
+  - rgi=6.0.2
   - diamond
+  - pysam=0.21
+  - samtools
