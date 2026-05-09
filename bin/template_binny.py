@@ -32,9 +32,9 @@ db_path: ""
 # and/or Mantis you can either input the absolute paths to yaml files or env names here.
 # Otherwise, leave empty and binny will take care of the installations.
 # If you already have Snakemake in your path set: snakemake_env="in_path".
-snakemake_env: "base"
-prokka_env: "base"
-mantis_env: "base"
+snakemake_env: "binny"
+prokka_env: ""
+mantis_env: ""
 # Set path for conda envs to be installed to. By default, they will be put in `conda` in the binny dir.
 conda_source: ""
 # Input a list, e.g. '2,3,4'.
@@ -102,4 +102,3 @@ p.add_argument('-b', help='BAM file path.')
 p.add_argument('-o', help='Binny results output path.')
 a = p.parse_args()
 sys.stdout.write(text.format(fa=a.f, bam=a.b, output_path=a.o))
-

@@ -539,7 +539,29 @@ fi
 if [[ "${DO_INSTALL_BINNY_ENV}" -eq 1 ]]; then
   log "Installing binny runtime from docs/environment/binny.yml"
   run_cmd bash -lc "$(conda_create_or_update_cmd "${ENV_BINNY}" "binny.yml")"
-  run_cmd bash -lc "source '${CONDA_ROOT}/etc/profile.d/conda.sh' && conda activate '${ENV_BINNY}' && mkdir -p '${ENV_DIR}/${ENV_BINNY}/opt' && if [[ ! -d '${ENV_DIR}/${ENV_BINNY}/opt/binny/.git' ]]; then git clone https://github.com/a-h-b/binny.git '${ENV_DIR}/${ENV_BINNY}/opt/binny'; fi && cd '${ENV_DIR}/${ENV_BINNY}/opt/binny' && ./binny -i config/config.init.yaml && test -x ./binny"
+  run_cmd bash -lc "
+set -Eeuo pipefail
+source '${CONDA_ROOT}/etc/profile.d/conda.sh'
+conda activate '${ENV_BINNY}'
+BINNY_HOME='${ENV_DIR}/${ENV_BINNY}/opt/binny'
+mkdir -p '${ENV_DIR}/${ENV_BINNY}/opt'
+if [[ ! -d \"\${BINNY_HOME}/.git\" ]]; then
+  git clone https://github.com/a-h-b/binny.git \"\${BINNY_HOME}\"
+fi
+cd \"\${BINNY_HOME}\"
+sed -i -E 's|^(SNAKEMAKE_EXTRA_ARGUMENTS)[[:space:]].*|\\1	--conda-frontend conda|' VARIABLE_CONFIG
+sed -i -E 's|^(snakemake_env:).*|\\1 \"${ENV_BINNY}\"|' config/config.init.yaml
+sed -i -E 's|^(conda_source:).*|\\1 \"'\"\${BINNY_HOME}\"'/conda\"|' config/config.init.yaml
+if ! grep -Eq '^[[:space:]]+- hmmer([ =]|$)' workflow/envs/mantis.yaml; then
+  sed -i '/mantis_pfa=1.4.7/a\\  - hmmer' workflow/envs/mantis.yaml
+fi
+find conda -maxdepth 1 -type d -name '*_' ! -name snakemake_env -exec sh -c 'for d; do test -f \"\$d/conda-meta/history\" || rm -rf \"\$d\"; done' sh {} + 2>/dev/null || true
+command -v snakemake
+command -v hmmpress
+export CFLAGS="-std=gnu99 ${CFLAGS:-}"
+./binny -i config/config.init.yaml
+test -x ./binny
+"
 fi
 
 if [[ "${DO_INSTALL_DEEPURIFY_ENV}" -eq 1 ]]; then

@@ -5,3 +5,6 @@ dependencies:
   - git
   - curl
   - ca-certificates
+  - hmmer
+  - snakemake=7.16.0
+  - unzip
