@@ -582,7 +582,9 @@ def taxonomayBarFig(speciesProfile,ftype):
     df_top20 = df_relative.loc[top20_bins]
     df_others = df_relative.loc[~df_relative.index.isin(top20_bins)].sum().to_frame().T
     df_top20.loc['Others'] = df_others.values[0]
-    df_sorted = df_top20.T.sort_values(by = [top20_bins[0],top20_bins[1],top20_bins[2],top20_bins[3]], ascending = [False,True, False,True], na_position = 'last')
+    sort_cols = list(top20_bins[:min(4, len(top20_bins))])
+    sort_asc = [False, True, False, True][:len(sort_cols)]
+    df_sorted = df_top20.T.sort_values(by=sort_cols, ascending=sort_asc, na_position='last')
     # df_sorted['item'] = df_sorted.index
     # df_melt = df_sorted.melt(id_vars=['item'],var_name='sample', value_name='abundance')
     
