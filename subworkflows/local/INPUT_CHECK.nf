@@ -47,8 +47,8 @@ def checkContent(LinkedHashMap row, String type) {
         } else { exit 1, "Invalid input samplesheet: contig can not be empty !" }
     }
     
-    //Check if sampleID is valid (letters, numbers, underscores).
-    if ( !id.matches('^[a-zA-Z0-9_]*$') ) {
+    //Check if sampleID is valid (letters, numbers, underscores, hyphens).
+    if ( !id.matches('^[a-zA-Z0-9_-]*$') ) {
         exit 1, "Sample ID: ${id} contains invalid characters!"
     }
     
