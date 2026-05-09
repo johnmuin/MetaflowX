@@ -567,7 +567,7 @@ fi
 if [[ "${DO_INSTALL_DEEPURIFY_ENV}" -eq 1 ]]; then
   log "Installing Deepurify conda environment from docs/environment/deepurify.yml"
   run_cmd bash -lc "$(conda_create_or_update_cmd "${ENV_DEEPURIFY}" "deepurify.yml")"
-  run_cmd bash -lc "source '${CONDA_ROOT}/etc/profile.d/conda.sh' && conda run -n '${ENV_DEEPURIFY}' deepurify --version"
+  run_cmd bash -lc "source '${CONDA_ROOT}/etc/profile.d/conda.sh' && conda run -n '${ENV_DEEPURIFY}' deepurify -h >/dev/null"
 fi
 
 if [[ "${DO_INSTALL_VAMB_ENV}" -eq 1 ]]; then
