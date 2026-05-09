@@ -5,6 +5,7 @@ dependencies:
   - python=3.8
   - git
   - biopython
+  - importlib_resources
   - numpy
   - pandas
   - scipy

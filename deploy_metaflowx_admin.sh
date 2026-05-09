@@ -193,6 +193,10 @@ download_file() {
 download_optional() {
   local url="\$1"
   local name="\${2:-\${url##*/}}"
+  if [[ -s "\${name}" ]]; then
+    echo "Using existing file: \${name}"
+    return 0
+  fi
   download_file "\${url}" "\${name}" || echo "WARNING: optional download failed: \${url}" >&2
 }
 
@@ -510,7 +514,7 @@ mkdir -p wheels
 download_optional 'https://github.com/liu-congcong/MetaDecoder/releases/download/v1.2.1/metadecoder-1.2.1-py3-none-any.whl' 'wheels/metadecoder-1.2.1-py3-none-any.whl'
 test -s 'wheels/metadecoder-1.2.1-py3-none-any.whl'"
   run_cmd bash -lc "$(conda_create_or_update_cmd "${ENV_METADECODER}" "metadecoder.yml")"
-  run_cmd bash -lc "source '${CONDA_ROOT}/etc/profile.d/conda.sh' && conda activate '${ENV_METADECODER}' && find \"\${CONDA_PREFIX}/lib\" -path '*/site-packages/metadecoder/fraggenescan' -exec chmod 755 {} +"
+  run_cmd bash -lc "source '${CONDA_ROOT}/etc/profile.d/conda.sh' && conda activate '${ENV_METADECODER}' && find \"\${CONDA_PREFIX}/lib\" \\( -path '*/site-packages/metadecoder/fraggenescan' -o -path '*/site-packages/metadecoder/hmmsearch' \\) -exec chmod 755 {} +"
   run_cmd bash -lc "source '${CONDA_ROOT}/etc/profile.d/conda.sh' && conda run -n '${ENV_METADECODER}' metadecoder -h >/dev/null"
 fi
 
