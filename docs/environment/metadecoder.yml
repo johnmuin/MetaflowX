@@ -9,4 +9,4 @@ dependencies:
   - scikit-learn
   - threadpoolctl
   - pip:
-      - https://github.com/liu-congcong/MetaDecoder/releases/download/v1.2.1/metadecoder-1.2.1-py3-none-any.whl
+      - ./wheels/metadecoder-1.2.1-py3-none-any.whl

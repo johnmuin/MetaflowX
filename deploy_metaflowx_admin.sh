@@ -502,6 +502,13 @@ fi
 
 if [[ "${DO_INSTALL_METADECODER_ENV}" -eq 1 ]]; then
   log "Installing MetaDecoder conda environment from docs/environment/metadecoder.yml"
+  run_cmd bash -lc "$(download_helpers_cmd)
+source '${CONDA_ROOT}/etc/profile.d/conda.sh'
+conda activate '${ENV_BASIC}'
+cd '${APP_ROOT}/docs/environment'
+mkdir -p wheels
+download_optional 'https://github.com/liu-congcong/MetaDecoder/releases/download/v1.2.1/metadecoder-1.2.1-py3-none-any.whl' 'wheels/metadecoder-1.2.1-py3-none-any.whl'
+test -s 'wheels/metadecoder-1.2.1-py3-none-any.whl'"
   run_cmd bash -lc "$(conda_create_or_update_cmd "${ENV_METADECODER}" "metadecoder.yml")"
   run_cmd bash -lc "source '${CONDA_ROOT}/etc/profile.d/conda.sh' && conda activate '${ENV_METADECODER}' && find \"\${CONDA_PREFIX}/lib\" -path '*/site-packages/metadecoder/fraggenescan' -exec chmod 755 {} +"
   run_cmd bash -lc "source '${CONDA_ROOT}/etc/profile.d/conda.sh' && conda run -n '${ENV_METADECODER}' metadecoder -h >/dev/null"
