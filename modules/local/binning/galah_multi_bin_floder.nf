@@ -32,7 +32,7 @@ process GALAHMULTIBIN {
         echo "[INFO] Only one fasta file detected, skip galah cluster."
         mkdir -p ${id}_Galah_cluster
         single_fa=\$(ls galah_inputs/*.fa | head -n 1)
-        cp "\$single_fa" ${id}_Galah_cluster/${id}_representative.fa
+        cp "\$single_fa" ${id}_Galah_cluster/
 
         cp ${id}_all.checkm2-quality-report.tsv ${id}_all.checkm2-quality-report_galah_selected.tsv
 
