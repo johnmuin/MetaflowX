@@ -4,6 +4,8 @@ import argparse
 import logging
 import os
 from pathlib import Path
+import re
+import shlex
 import subprocess
 import shutil
 import time
@@ -11,6 +13,31 @@ import threading
 from typing import List, Dict, Set
 
 import pandas as pd
+
+
+def normalize_queue_system_type(value: str) -> str:
+    """Translate scheduler names to the canonical values used internally."""
+    aliases = {
+        "slurm": "slurm",
+        "pbs": "pbs",
+        "pbspro": "pbs",
+        "sge": "sge",
+    }
+    normalized = aliases.get(value.lower())
+    if normalized is None:
+        supported = ", ".join(sorted(aliases))
+        raise argparse.ArgumentTypeError(
+            f"unsupported queue system {value!r}; choose from: {supported}"
+        )
+    return normalized
+
+
+def parse_job_id(output: str) -> int:
+    """Extract a numeric job ID from Slurm, PBS, or SGE submit output."""
+    match = re.search(r"(?<!\w)(\d+)(?:\.[A-Za-z0-9_.-]+)?(?!\w)", output)
+    if match is None:
+        raise RuntimeError(f"Unable to parse scheduler job ID from: {output!r}")
+    return int(match.group(1))
 
 
 class Task:
@@ -71,15 +98,18 @@ class Task:
         # Submit the task.
         if queue_system_type == "slurm":
             submit_cmd = "sbatch"
-        elif queue_system_type == "PBS" or queue_system_type == "pbs":
+        elif queue_system_type in {"pbs", "sge"}:
             submit_cmd = "qsub"
         else:
             raise NotImplementedError(f"Queue system {queue_system_type} is not supported!")
         result = subprocess.run(
-            f"{submit_cmd} {self.bash_file}", shell=True, capture_output=True, text=True
+            [submit_cmd, str(self.bash_file)], capture_output=True, text=True
         )
+        if result.returncode != 0:
+            message = result.stderr.strip() or result.stdout.strip()
+            raise RuntimeError(f"Failed to submit {self.name}: {message}")
         output = result.stdout.strip()
-        self.job_id = int(output.split()[-1])
+        self.job_id = parse_job_id(output)
         self.status = "Submit"
         logging.info(f"Submitted task {self.name} as job {self.job_id}")
 
@@ -208,7 +238,7 @@ class DrepParallel:
     def _get_command_header(self, jobname: str):
         if self.queue_system_type == "slurm":
             return self._get_slurm_header(jobname)
-        elif self.queue_system_type == "qsub":
+        elif self.queue_system_type == "pbs":
             return self._get_qsub_header(jobname)
         elif self.queue_system_type == "sge":
             return self._get_sge_header(jobname)
@@ -249,14 +279,16 @@ class DrepParallel:
 #$ -A {self.projectname}
 #$ -q {self.queue}
 #$ -pe smp {self.threads}
-#$ -l mem={self.max_mem}gb
+#$ -l h_rss={self.max_mem}G,mem_free={self.max_mem}G
 #$ -e {str(errlog)}
 #$ -o {str(outlog)}
 """
 
     def _write_bash_file(self, bash_file: Path, header: str, *commands: List[str]):
         bash_file.touch()
+        drep_bin_dir = shlex.quote(str(self.drep_exe.parent))
         result_str = header + "\n"
+        result_str += f'export PATH={drep_bin_dir}:"${{PATH:-}}"\n\n'
         for command in commands:
             result_str += command + " && \\" + "\n"
         done_file = bash_file.with_suffix(".done")
@@ -514,9 +546,9 @@ if __name__ == "__main__":
     parser.add_argument(
         "-T",
         "--queue_system_type",
-        type=str,
+        type=normalize_queue_system_type,
         default="slurm",
-        choices=["slurm", "PBS", "SGE"],
+        choices=["slurm", "pbs", "sge"],
         help="Default: [%(default)s]",
     )
     parser.add_argument(

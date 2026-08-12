@@ -809,6 +809,23 @@
                     "description": "Max memory required for each job, Suffix with G",
                     "fa_icon": "fas fa-sd-card"
                 },
+                "drep_queue_system": {
+                    "type": "string",
+                    "enum": [
+                        "slurm",
+                        "pbs",
+                        "sge"
+                    ],
+                    "description": "Scheduler used by split dRep child jobs",
+                    "fa_icon": "fas fa-server",
+                    "help_text": "When set, the DREP wrapper process must use the local executor so it can submit child jobs from the workflow launch host."
+                },
+                "drep_queue": {
+                    "type": "string",
+                    "description": "Queue used by split dRep child jobs",
+                    "fa_icon": "fas fa-stream",
+                    "help_text": "Set this explicitly when drep_queue_system is configured because the local DREP wrapper does not necessarily inherit a cluster queue."
+                },
                 "drep_options": {
                     "type": "string",
                     "default": "-sa 0.95 -nc 0.3 --ignoreGenomeQuality",
