@@ -19,12 +19,34 @@ process MULTICDHIT {
 
     script:
     def split_num = task_num.getSimpleName().toInteger()
+    def cdhit_queue_system = params.cdhit_queue_system ?: params.drep_queue_system ?: 'slurm'
+    def cdhit_queue = params.cdhit_queue ?: params.drep_queue ?: task.queue
+    def cdhit_queue_type
+    def cdhit_queue_options
+
+    switch (cdhit_queue_system.toLowerCase()) {
+        case 'sge':
+            cdhit_queue_type = 'SGE'
+            cdhit_queue_options = "-A ${params.Account} -q ${cdhit_queue} -pe smp ${params.cdhit_split_run_eachthread} -l h_rss=${params.cdhit_split_mem}G,mem_free=${params.cdhit_split_mem}G"
+            break
+        case 'pbs':
+        case 'pbspro':
+            cdhit_queue_type = 'PBS'
+            cdhit_queue_options = "-A ${params.Account} -q ${cdhit_queue} -l nodes=1:ppn=${params.cdhit_split_run_eachthread} -l mem=${params.cdhit_split_mem}gb"
+            break
+        case 'slurm':
+            cdhit_queue_type = 'slurm'
+            cdhit_queue_options = "-A ${params.Account} -p ${cdhit_queue} -c ${params.cdhit_split_run_eachthread} --mem ${params.cdhit_split_mem}G"
+            break
+        default:
+            error "Unsupported CD-HIT child scheduler: ${cdhit_queue_system}"
+    }
     
     """
     
     cd-hit-cluster.pl -i ${allcds} -o unique.fa --P cd-hit-est \\
-        --prog_options \"-c 0.95 -aS 0.9 -d 0 -M 0 -T 32\" --S ${split_num} \\
-        --queue_options \"-A ${params.Account} -p ${task.queue} -c 8 --mem 15G\" --T slurm --Q 100
+        --prog_options \"-c 0.95 -aS 0.9 -d 0 -M 0 -T ${params.cdhit_split_run_eachthread}\" --S ${split_num} \\
+        --queue_options \"${cdhit_queue_options}\" --T ${cdhit_queue_type} --Q 100
 
     mv unique.fa.clstr ${params.pipeline_prefix}_geneset_cdhit_clstr.txt
 

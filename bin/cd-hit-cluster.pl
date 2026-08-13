@@ -195,27 +195,33 @@ while(1) {
     elsif ($queue) {
       my $t = "cd-hit-$job";
       my $dt = "$work_dir/$t";
+      my $submit_cmd;
       if ($queue_type eq "PBS") {
         open QUEUE, ">$dt.sh" or die $!;
         print QUEUE "cd $pwd\nsh $tsh\n";
         close QUEUE;
-        `qsub $queue_options -N $t -o $dt.log -e $dt.err $dt.sh`;
+        $submit_cmd = "qsub $queue_options -N $t -o $dt.log -e $dt.err $dt.sh";
       }
       elsif ($queue_type eq "SGE") {
         open QUEUE, ">$dt.sh" or die $!;
-        print QUEUE "#!/bin/sh\n#$ -S /bin/bash\n#$ -v PATH\ncd $pwd\nsh $tsh\n";
+        print QUEUE "#!/bin/sh\n";
+        print QUEUE '#$ -S /bin/bash' . "\n";
+        print QUEUE '#$ -v PATH' . "\n";
+        print QUEUE "cd $pwd\nsh $tsh\n";
         close QUEUE;
-        `qsub $queue_options -N $t $dt.sh`;
+        $submit_cmd = "qsub $queue_options -N $t $dt.sh";
       }
       elsif ($queue_type eq "slurm") {
         open QUEUE, ">$dt.sh" or die $!;
         print QUEUE "#!/bin/bash\ncd $pwd\nsh $tsh\n";
         close QUEUE;
-        `sbatch $queue_options -J $t -e $dt.err -o $dt.log $dt.sh`;
+        $submit_cmd = "sbatch $queue_options -J $t -e $dt.err -o $dt.log $dt.sh";
       } 
       else {
         die "not correct queue!";
       }
+      system($submit_cmd) == 0
+        or die "Failed to submit $job with $queue_type: $submit_cmd\n";
       $command_status[$i] = "run";
     }
     else {

@@ -498,6 +498,26 @@
                     "description": "Gene count of each cd-hit split task",
                     "fa_icon": "fas fa-columns"
                 },
+                "cdhit_split_mem": {
+                    "type": "integer",
+                    "default": 15,
+                    "description": "Memory in GB for each split CD-HIT child task"
+                },
+                "cdhit_queue_system": {
+                    "type": "string",
+                    "enum": [
+                        "slurm",
+                        "pbs",
+                        "sge"
+                    ],
+                    "description": "Scheduler used by split CD-HIT child jobs",
+                    "help_text": "The MULTICDHIT wrapper runs locally and submits child jobs to this scheduler. When unset, drep_queue_system is reused, followed by the legacy Slurm default."
+                },
+                "cdhit_queue": {
+                    "type": "string",
+                    "description": "Queue or partition used by split CD-HIT child jobs",
+                    "help_text": "When unset, drep_queue is reused, followed by the queue assigned to MULTICDHIT."
+                },
                 "gene_function": {
                     "type": "boolean",
                     "default": true,
